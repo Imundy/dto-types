@@ -1,0 +1,13 @@
+{
+  "name": "dto-types",
+  "version": "0.0.1",
+  "description": "Express middleware for dto type checking based off of React PropTypes",
+  "main": "index.js",
+  "author": "Ian Mundy",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "express": "^4.15.4"
+  }
+}
