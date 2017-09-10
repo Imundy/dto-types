@@ -4,7 +4,7 @@ const DtoValidator = function(dto) {
     if (errors.length === 0) {
       next();
     } else {
-      res.status(400).send(errors);
+      res.status(400).json({ errors });
     }
   }
 }
@@ -34,7 +34,14 @@ const DtoTypes = {
       check: (key, value) => arrayOfChecker(type)(`array of ${type}`, key, value, true),
     },
   }),
-  shape: {}
+  shape: (description) => ({
+    name: 'shape',
+    check: (key, value) => shapeChecker(description)('shape', key, value, false),
+    isRequired: {
+      name: 'shape',
+      check: (key, value) => shapeChecker(description)('shape', key, value, true),
+    }
+  })
 }
 
 const stringChecker = function(name, key, value, isRequired) {
@@ -104,6 +111,27 @@ const arrayOfChecker = function(typeValidator) {
   };
 }
 
+const shapeChecker = function(description) {
+  return function(name, key, value, isRequired) {
+    const errors = [];
+    if (!value && isRequired) {
+      errors.push(`Property ${key} is marked as required`);
+      return { valid: true, missing: true, errors };
+    } else if (value && typeof value !== 'object') {
+      errors.push(`Expected shape for property ${key}`);
+      return { valid: false, missing: false, errors };
+    }
+
+    for (const property in description) {
+      const typeValidator = description[property];
+      const result = typeValidator.check(property, value[property]);
+      errors.push(...result.errors.map(error => `${error} in property ${key}`));
+    }
+
+    return { valid: errors.length > 0, missing: false, errors };
+  }
+}
+
 const validateIsRequired = function(value, isRequired) {
   return isRequired && !value;
 }
@@ -123,23 +151,8 @@ const validateDto = function(dtoTypes, dto) {
   return errors;
 }
 
-const dtoTypeDef = {
-  email: DtoTypes.string,
-  password: DtoTypes.string.isRequired,
-  id: DtoTypes.number.isRequired,
-  names: DtoTypes.arrayOf(DtoTypes.string).isRequired
-}
-
-const dto = {
-  email: null,
-  password: 'test',
-  id: 1.4,
-  names: ['1'],
-}
-
-validateDto (dtoTypeDef, dto);
-
 module.exports = {
   DtoTypes,
-  DtoValidator
+  DtoValidator,
+  validateDto
 };
