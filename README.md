@@ -29,5 +29,5 @@ const orderDtoType = {
   }).isRequired,
 }
 
-app.post('/orders', DtoValidator(userDtoType), (req, res) => { // do stuff })
+app.post('/orders', DtoValidator(orderDtoType), (req, res) => { // do stuff })
 ```
